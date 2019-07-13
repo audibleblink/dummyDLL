@@ -2,10 +2,12 @@
 
 Export some functions. See if they load somewhere.
 
-## Compilation
+## Building
+
+Depending on your host OS:
 
 ```sh
-GOOS=windows go build -o dummy.dll -buildmode=c-shared main.go
+make {windows,linux}
 ```
 
 Check the functions work:
