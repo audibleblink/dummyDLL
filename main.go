@@ -1,6 +1,8 @@
 package main
 
 import (
+	"C"
+
 	"github.com/gen2brain/beeep"
 )
 
