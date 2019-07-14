@@ -11,7 +11,7 @@ linux:
 	CGO_ENABLED=1 \
 	CC=i686-w64-mingw32-gcc \
 	GOARCH=386 \
-	${BUILD} ${MODE} -o ${OUT} ${LDFLAGS} main.go
+	${BUILD} ${MODE} -o ${OUT} ${LDFLAGS}
 
 windows:
-	${BUILD} ${MODE} ${TRIM} ${LDFLAGS} -o ${OUT} main.go
+	${BUILD} ${MODE} ${TRIM} ${LDFLAGS} -o ${OUT}
