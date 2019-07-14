@@ -9,14 +9,14 @@ import (
 	"unsafe"
 
 	"github.com/elastic/go-windows"
-	"github.com/palantir/stacktrace"
 )
 
 var (
-	modntdll                = syscall.NewLazyDLL("ntdll.dll")
-	procNtReadVirtualMemory = modntdll.NewProc("NtReadVirtualMemory")
-	modkernel32             = syscall.NewLazyDLL("kernel32.dll")
-	procOpenProcess         = modkernel32.NewProc("OpenProcess")
+	ntdll                   = syscall.NewLazyDLL("ntdll.dll")
+	procNtReadVirtualMemory = ntdll.NewProc("NtReadVirtualMemory")
+
+	kernel32        = syscall.NewLazyDLL("kernel32.dll")
+	procOpenProcess = kernel32.NewProc("OpenProcess")
 )
 
 const (
@@ -190,14 +190,9 @@ func ntReadVirtualMemory(handle syscall.Handle, baseAddress uintptr, dest []byte
 	}
 	status := _ntReadVirtualMemory(handle, baseAddress, uintptr(unsafe.Pointer(&dest[0])), uintptr(n), &numRead)
 	if status != 0 {
-		return numRead, getNtErr(status)
+		return numRead, fmt.Errorf("*kaboom noises*")
 	}
 	return numRead, nil
-}
-
-func getNtErr(status uint32) error {
-	ntStatus := windows.NTStatus(status)
-	return stacktrace.PropagateWithCode(ntStatus, stacktrace.ErrorCode(ntStatus), "")
 }
 
 // convert utf16 to utf8

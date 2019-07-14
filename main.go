@@ -2,8 +2,7 @@ package main
 
 import (
 	"C"
-
-	"github.com/gen2brain/beeep"
+	"syscall"
 )
 
 func main() {
@@ -11,8 +10,9 @@ func main() {
 }
 
 func alert() {
+	defer syscall.FreeLibrary(user32)
 	name := getHostImagePath()
-	beeep.Notify(name, caller(), "")
+	MessageBox(name, caller(), MB_OK)
 }
 
 //export DllCanUnloadNow

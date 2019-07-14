@@ -13,6 +13,6 @@ make {windows,linux}
 Check the functions work:
 
 ```sh
-PS> .\rundll32.exe dummy.dll,DllRegisterServer
+.\rundll32.exe dummy.dll,DllRegisterServer
 ```
-![](https://i.imgur.com/e6jImn3.png)
+![](https://i.imgur.com/AKBkANd.png)
