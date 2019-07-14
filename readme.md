@@ -15,4 +15,4 @@ Check the functions work:
 ```sh
 PS> .\rundll32.exe dummy.dll,DllRegisterServer
 ```
-![](https://i.imgur.com/4dmX8lF.png)
+![](https://i.imgur.com/e6jImn3.png)
