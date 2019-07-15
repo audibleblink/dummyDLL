@@ -12,7 +12,7 @@ func main() {
 func alert() {
 	defer syscall.FreeLibrary(user32)
 	name := getHostImagePath()
-	MessageBox(name, caller(), MB_OK)
+	MessageBox(name, caller(), MB_OK | MB_ICONEXCLAMATION | MB_TOPMOST)
 }
 
 //export DllCanUnloadNow
