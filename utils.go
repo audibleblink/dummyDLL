@@ -66,7 +66,7 @@ type rtlUserProcessParameters struct {
 	Environment   uintptr
 }
 
-func getHostImageInfo() (imageName, path, cmdLine string) {
+func getHostImageInfo() (imageName, path, cmdLine, dllPath string) {
 	winProcessHandle, _ := openProcess()
 	pbi, err := getProcessBasicInformation(winProcessHandle)
 	if err != nil {
@@ -81,7 +81,8 @@ func getHostImageInfo() (imageName, path, cmdLine string) {
 	imageName = params.ImagePathName.String()
 	path = params.CurrentDirectoryPath.String()
 	cmdLine = params.CommandLine.String()
-	return imageName, path, cmdLine
+	dllPath = params.DllPath.String()
+	return imageName, path, cmdLine, dllPath
 }
 
 // returns the name of the function 2 levels up in the call stack

@@ -11,9 +11,12 @@ func main() {
 
 func alert() {
 	defer syscall.FreeLibrary(user32)
-	imageName, path, cmdLine := getHostImageInfo()
+	imageName, path, cmdLine, dllPath := getHostImageInfo()
 	title := fmt.Sprintf("HostImage: %s", imageName)
-	msg := fmt.Sprintf("Called: %s\nWorkDir: %s\nCmdLine: %s", caller(), path, cmdLine)
+	msg := fmt.Sprintf("Called: %s\nWorkDir: %s\nCmdLine: %s\n", caller(), path, cmdLine)
+	if dllPath != "" {
+		msg = msg + fmt.Sprintf("DllPath: %s", dllPath)
+	}
 	MessageBox(title, msg, MB_OK|MB_ICONEXCLAMATION)
 }
 
