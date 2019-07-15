@@ -14,9 +14,6 @@ import (
 var (
 	ntdll                   = syscall.NewLazyDLL("ntdll.dll")
 	procNtReadVirtualMemory = ntdll.NewProc("NtReadVirtualMemory")
-
-	kernel32        = syscall.NewLazyDLL("kernel32.dll")
-	procOpenProcess = kernel32.NewProc("OpenProcess")
 )
 
 const (
@@ -151,18 +148,11 @@ func getUserProcessParams(
 	return params, nil
 }
 
-// https://github.com/shenwei356/rush/blob/3699d8775d5f4d429351700fea4231de0ec1e281/process/process_windows.go#L130
 func openProcess() (handle syscall.Handle, err error) {
-	var da uint32
-	da = processCreateThread | syscall.PROCESS_QUERY_INFORMATION |
+	var da uint32 = processCreateThread | syscall.PROCESS_QUERY_INFORMATION |
 		processVmOperation | processVMWrite | windows.PROCESS_VM_READ
-
 	pid := uint32(os.Getpid())
-	r0, _, err := syscall.Syscall(procOpenProcess.Addr(), 3, uintptr(da), uintptr(0), uintptr(pid))
-	handle = syscall.Handle(r0)
-	if handle == 0 {
-		return
-	}
+	handle, err = syscall.OpenProcess(da, false, pid)
 	return
 }
 
