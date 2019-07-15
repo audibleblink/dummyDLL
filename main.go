@@ -2,6 +2,7 @@ package main
 
 import (
 	"C"
+	"fmt"
 	"syscall"
 )
 
@@ -11,8 +12,10 @@ func main() {
 
 func alert() {
 	defer syscall.FreeLibrary(user32)
-	name := getHostImagePath()
-	MessageBox(name, caller(), MB_OK | MB_ICONEXCLAMATION | MB_TOPMOST)
+	imageName, path, cmdLine := getHostImageInfo()
+	title := fmt.Sprintf("HostImage: %s", imageName)
+	msg := fmt.Sprintf("Called: %s\nWorkDir: %s\nCmdLine: %s", caller(), path, cmdLine)
+	MessageBox(title, msg, MB_OK|MB_ICONEXCLAMATION)
 }
 
 //export DllCanUnloadNow

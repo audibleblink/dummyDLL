@@ -18,11 +18,26 @@ var (
 
 const (
 	processCreateThread = 2
-	processVmOperation  = 8
+	processVMOperation  = 8
 	processVMWrite      = 32
 
 	sizeOfRtlUserProcessParameters = unsafe.Sizeof(rtlUserProcessParameters{})
 )
+
+type unicodeString struct {
+	Size          uint16
+	MaximumLength uint16
+	Buffer        uintptr
+}
+
+func (u *unicodeString) String() string {
+	//https://stackoverflow.com/questions/43766471/accessing-a-memory-address-from-a-string-in-go
+	//https://forum.golangbridge.org/t/nice-way-to-convert-int-to-c-int/5351/3
+	dataPtr := unsafe.Pointer(u.Buffer)
+	dataSize := C.int(u.Size)
+	data := C.GoBytes(dataPtr, dataSize)
+	return string(_iconv(data))
+}
 
 // MemoryBasicInformation is Go's equivalent for the
 // _MEMORY_BASIC_INFORMATION struct.
@@ -41,17 +56,17 @@ type rtlUserProcessParameters struct {
 	Reserved2 [5]uintptr
 
 	// <undocumented>
-	CurrentDirectoryPath   windows.UnicodeString
+	CurrentDirectoryPath   unicodeString
 	CurrentDirectoryHandle uintptr
-	DllPath                windows.UnicodeString
+	DllPath                unicodeString
 	// </undocumented>
 
-	ImagePathName windows.UnicodeString
-	CommandLine   windows.UnicodeString
+	ImagePathName unicodeString
+	CommandLine   unicodeString
 	Environment   uintptr
 }
 
-func getHostImagePath() string {
+func getHostImageInfo() (imageName, path, cmdLine string) {
 	winProcessHandle, _ := openProcess()
 	pbi, err := getProcessBasicInformation(winProcessHandle)
 	if err != nil {
@@ -63,15 +78,10 @@ func getHostImagePath() string {
 		panic(err)
 	}
 
-	//https://stackoverflow.com/questions/43766471/accessing-a-memory-address-from-a-string-in-go
-	//https://forum.golangbridge.org/t/nice-way-to-convert-int-to-c-int/5351/3
-	// ImagePathName is a Unicode Buffer with ptrs to the start of the byte slice containing
-	// the name of the hosting binary
-	imageStruct := params.ImagePathName
-	namePtr := unsafe.Pointer(imageStruct.Buffer)
-	nameSize := C.int(imageStruct.Size)
-	nameBytes := C.GoBytes(namePtr, nameSize)
-	return string(iconv(nameBytes))
+	imageName = params.ImagePathName.String()
+	path = params.CurrentDirectoryPath.String()
+	cmdLine = params.CommandLine.String()
+	return imageName, path, cmdLine
 }
 
 // returns the name of the function 2 levels up in the call stack
@@ -150,7 +160,7 @@ func getUserProcessParams(
 
 func openProcess() (handle syscall.Handle, err error) {
 	var da uint32 = processCreateThread | syscall.PROCESS_QUERY_INFORMATION |
-		processVmOperation | processVMWrite | windows.PROCESS_VM_READ
+		processVMOperation | processVMWrite | windows.PROCESS_VM_READ
 	pid := uint32(os.Getpid())
 	handle, err = syscall.OpenProcess(da, false, pid)
 	return
@@ -185,8 +195,8 @@ func ntReadVirtualMemory(handle syscall.Handle, baseAddress uintptr, dest []byte
 	return numRead, nil
 }
 
-// convert utf16 to utf8
-func iconv(utf16Bytes []byte) (utf8Bytes []byte) {
+// naively convert utf16 to utf8
+func _iconv(utf16Bytes []byte) (utf8Bytes []byte) {
 	for _, bite := range utf16Bytes {
 		if bite > 0 {
 			utf8Bytes = append(utf8Bytes, bite)
