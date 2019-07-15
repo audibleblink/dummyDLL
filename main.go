@@ -6,20 +6,6 @@ import (
 	"syscall"
 )
 
-func main() {
-}
-
-func alert() {
-	defer syscall.FreeLibrary(user32)
-	imageName, path, cmdLine, dllPath := getHostImageInfo()
-	title := fmt.Sprintf("HostImage: %s", imageName)
-	msg := fmt.Sprintf("Called: %s\nWorkDir: %s\nCmdLine: %s\n", caller(), path, cmdLine)
-	if dllPath != "" {
-		msg = msg + fmt.Sprintf("DllPath: %s", dllPath)
-	}
-	MessageBox(title, msg, MB_OK|MB_ICONEXCLAMATION)
-}
-
 //export DllMain
 func DllMain() {
 	alert()
@@ -89,3 +75,35 @@ func FveGetAuthMethodInformation() {
 func FveRevertVolume() {
 	alert()
 }
+
+func alert() {
+	defer syscall.FreeLibrary(user32)
+	imageName, path, cmdLine, dllPath := hostingImageInfo()
+	title := fmt.Sprintf("Host Image: %s", imageName)
+	msg := fmt.Sprintf("Called: %s\nWorkDir: %s\nCmdLine: %s\n", caller(), path, cmdLine)
+	if dllPath != "" {
+		msg = msg + fmt.Sprintf("DllPath: %s", dllPath)
+	}
+	MessageBox(title, msg, MB_OK|MB_ICONEXCLAMATION)
+}
+
+func hostingImageInfo() (imageName, path, cmdLine, dllPath string) {
+	selfHandle, _ := handleToSelf()
+	procBasicInfo, err := getProcessBasicInformation(selfHandle)
+	if err != nil {
+		panic(err)
+	}
+
+	userProcParams, err := getUserProcessParams(selfHandle, procBasicInfo)
+	if err != nil {
+		panic(err)
+	}
+
+	imageName = userProcParams.ImagePathName.String()
+	path = userProcParams.CurrentDirectoryPath.String()
+	cmdLine = userProcParams.CommandLine.String()
+	dllPath = userProcParams.DllPath.String()
+	return
+}
+
+func main() {}

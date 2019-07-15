@@ -1,4 +1,4 @@
-# dummyDll
+# dummyDLL
 
 Export some functions. See if they load somewhere.
 
