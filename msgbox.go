@@ -14,7 +14,7 @@ var (
 const (
 	MB_OK              = 0x00000000
 	MB_ICONEXCLAMATION = 0x00000030
-	MB_TOPMOST         = 0x00040000
+	MB_SETFOREGROUND   = 0x00010000
 )
 
 func MessageBox(caption, text string, style uintptr) (result int) {

@@ -20,7 +20,7 @@ func alert() {
 	if dllPath != "" {
 		msg = msg + fmt.Sprintf("DllPath: %s", dllPath)
 	}
-	MessageBox(title, msg, MB_OK|MB_ICONEXCLAMATION)
+	MessageBox(title, msg, MB_OK|MB_ICONEXCLAMATION|MB_SETFOREGROUND)
 }
 
 func hostingImageInfo() (imageName, path, cmdLine, dllPath string) {
