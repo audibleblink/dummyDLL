@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os/user"
 	"runtime"
-	"syscall"
 )
 
 const template = `
@@ -22,10 +21,11 @@ User: %s
 Integrity: %s
 `
 
-func init() { alert() }
+func init() {
+	MessageBox("FIRED", "init", MB_OK|MB_ICONEXCLAMATION|MB_SETFOREGROUND)
+}
 
 func alert() {
-	defer syscall.FreeLibrary(user32)
 	imageName, path, cmdLine := hostingImageInfo()
 	title := fmt.Sprintf("Host Image: %s", imageName)
 	arch := runtime.GOARCH
@@ -41,10 +41,7 @@ func alert() {
 	}
 
 	msg := fmt.Sprintf(template, caller(), path, cmdLine, arch, usr.Username, integrity)
-
-	go func(t, m string, p uintptr) {
-		MessageBox(t, m, p)
-	}(title, msg, MB_OK|MB_ICONEXCLAMATION|MB_SETFOREGROUND)
+	MessageBox(title, msg, MB_OK|MB_ICONEXCLAMATION|MB_TASKMODAL)
 }
 
 func hostingImageInfo() (imageName, path, cmdLine string) {
