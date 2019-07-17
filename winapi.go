@@ -13,6 +13,14 @@ import (
 var (
 	ntdll               = syscall.NewLazyDLL("ntdll.dll")
 	ntReadVirtualMemory = ntdll.NewProc("NtReadVirtualMemory")
+
+	intLevels = map[string]string{
+		"S-1-16-4096":  "Low",
+		"S-1-16-8192":  "Medium",
+		"S-1-16-8448":  "Medium-Plus",
+		"S-1-16-12288": "High",
+		"S-1-16-16384": "System",
+	}
 )
 
 const (
@@ -20,11 +28,23 @@ const (
 	processVMOperation  = 8
 	processVMWrite      = 32
 
+	is32bitProc        = unsafe.Sizeof(uintptr(0)) == 4
 	userProcParamsSize = unsafe.Sizeof(rtlUserProcessParameters{})
 )
 
-// MemoryBasicInformation is Go's equivalent for the
-// _MEMORY_BASIC_INFORMATION struct.
+type sidAttrs struct {
+	Sid        *syscall.SID
+	Attributes uint32
+}
+
+type tokenMandatoryLabel struct {
+	Label sidAttrs
+}
+
+func (tml *tokenMandatoryLabel) Size() uint32 {
+	return uint32(unsafe.Sizeof(tokenMandatoryLabel{})) + syscall.GetLengthSid(tml.Label.Sid)
+}
+
 type memoryBasicInformation struct {
 	BaseAddress       uintptr
 	AllocationBase    uintptr
@@ -55,9 +75,6 @@ func getUserProcessParams(
 	processHandle syscall.Handle,
 	pbi windows.ProcessBasicInformationStruct) (rtlUserProcessParameters, error) {
 
-	var userProcParams rtlUserProcessParameters
-	const is32bitProc = unsafe.Sizeof(uintptr(0)) == 4
-
 	// Offset of params field within PEB structure.
 	// This structure is different in 32 and 64 bit.
 	paramsOffset := 0x20
@@ -70,6 +87,7 @@ func getUserProcessParams(
 	peb := make([]byte, pebSize)
 
 	nRead, err := readMem(processHandle, pbi.PebBaseAddress, peb)
+	var userProcParams rtlUserProcessParameters
 	if err != nil {
 		return userProcParams, err
 	}
@@ -135,4 +153,44 @@ func readMem(handle syscall.Handle, baseAddress uintptr, dest []byte) (numRead u
 		uintptr(n),
 		uintptr(unsafe.Pointer(&numRead)))
 	return
+}
+
+func getProcessIntegrityLevel() (string, error) {
+	procToken, err := syscall.OpenCurrentProcessToken()
+	if err != nil {
+		return "", err
+	}
+	defer procToken.Close()
+
+	p, err := tokenGetInfo(procToken, syscall.TokenIntegrityLevel, 64)
+	if err != nil {
+		return "", err
+	}
+
+	tml := (*tokenMandatoryLabel)(p)
+
+	sid := (*syscall.SID)(unsafe.Pointer(tml.Label.Sid))
+	sidStr, err := sid.String()
+	if err != nil {
+		return "", err
+	}
+
+	return intLevels[sidStr], err
+}
+
+func tokenGetInfo(t syscall.Token, class uint32, initSize int) (unsafe.Pointer, error) {
+	n := uint32(initSize)
+	for {
+		b := make([]byte, n)
+		e := syscall.GetTokenInformation(t, class, &b[0], uint32(len(b)), &n)
+		if e == nil {
+			return unsafe.Pointer(&b[0]), nil
+		}
+		if e != syscall.ERROR_INSUFFICIENT_BUFFER {
+			return nil, e
+		}
+		if n <= uint32(len(b)) {
+			return nil, e
+		}
+	}
 }

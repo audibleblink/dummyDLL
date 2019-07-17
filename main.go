@@ -3,27 +3,51 @@ package main
 import (
 	"C"
 	"fmt"
+	"os/user"
+	"runtime"
 	"syscall"
 )
 
-func init() {
-	alert()
-}
+const template = `
+FnCall: %s
 
-func main() {}
+WorkDir: %s
+
+CmdLine: %s
+
+Arch: %s
+
+User: %s
+
+Integrity: %s
+`
+
+func init() { alert() }
 
 func alert() {
 	defer syscall.FreeLibrary(user32)
-	imageName, path, cmdLine, dllPath := hostingImageInfo()
+	imageName, path, cmdLine := hostingImageInfo()
 	title := fmt.Sprintf("Host Image: %s", imageName)
-	msg := fmt.Sprintf("Called: %s\nWorkDir: %s\nCmdLine: %s\n", caller(), path, cmdLine)
-	if dllPath != "" {
-		msg = msg + fmt.Sprintf("DllPath: %s", dllPath)
+	arch := runtime.GOARCH
+
+	usr, err := user.Current()
+	if err != nil {
+		usr.Username = "Unknown Error"
 	}
-	MessageBox(title, msg, MB_OK|MB_ICONEXCLAMATION|MB_SETFOREGROUND)
+
+	integrity, err := getProcessIntegrityLevel()
+	if err != nil {
+		integrity = "Unknown Error"
+	}
+
+	msg := fmt.Sprintf(template, caller(), path, cmdLine, arch, usr.Username, integrity)
+
+	go func(t, m string, p uintptr) {
+		MessageBox(t, m, p)
+	}(title, msg, MB_OK|MB_ICONEXCLAMATION|MB_SETFOREGROUND)
 }
 
-func hostingImageInfo() (imageName, path, cmdLine, dllPath string) {
+func hostingImageInfo() (imageName, path, cmdLine string) {
 	selfHandle, _ := handleToSelf()
 	procBasicInfo, err := getProcessBasicInformation(selfHandle)
 	if err != nil {
@@ -38,7 +62,6 @@ func hostingImageInfo() (imageName, path, cmdLine, dllPath string) {
 	imageName = userProcParams.ImagePathName.String()
 	path = userProcParams.CurrentDirectoryPath.String()
 	cmdLine = userProcParams.CommandLine.String()
-	dllPath = userProcParams.DllPath.String()
 	return
 }
 
@@ -135,8 +158,8 @@ func GetFQDN_Ipv4() { alert() }
 //export GetMemLogObject
 func GetMemLogObject() { alert() }
 
-//export GetQFDN_Ipv6
-func GetQFDN_Ipv6() { alert() }
+//export GetFQDN_Ipv6
+func GetFQDN_Ipv6() { alert() }
 
 //export InitCommonControlsEx
 func InitCommonControlsEx() { alert() }
@@ -238,6 +261,6 @@ func SLGetWindowsInformation() { alert() }
 func UnRegisterDLL() { alert() }
 
 //export WdsAbortBlackboa
-func WdsAbortBlackboa() {
-	alert()
-}
+func WdsAbortBlackboa() { alert() }
+
+func main() {}
