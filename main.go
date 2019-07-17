@@ -22,7 +22,8 @@ Integrity: %s
 `
 
 func init() {
-	MessageBox("FIRED", "init", MB_OK|MB_ICONEXCLAMATION|MB_SETFOREGROUND)
+	MessageBox("FIRED", "init", MB_OK|MB_ICONEXCLAMATION|MB_TOPMOST) //testing
+	alert()
 }
 
 func alert() {
@@ -41,7 +42,7 @@ func alert() {
 	}
 
 	msg := fmt.Sprintf(template, caller(), path, cmdLine, arch, usr.Username, integrity)
-	MessageBox(title, msg, MB_OK|MB_ICONEXCLAMATION|MB_TASKMODAL)
+	MessageBox(title, msg, MB_OK|MB_ICONEXCLAMATION|MB_TOPMOST)
 }
 
 func hostingImageInfo() (imageName, path, cmdLine string) {
