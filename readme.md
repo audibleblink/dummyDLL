@@ -18,4 +18,4 @@ Check the functions work:
 
 Place the dll somewhere you think it might hijack a hosting executable.
 
-![](https://i.imgur.com/CJ6tx4K.png))
+![](https://i.imgur.com/9fMiAQG.png))
