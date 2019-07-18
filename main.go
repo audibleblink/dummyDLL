@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/user"
 	"runtime"
+	"unsafe"
 )
 
 const template = `
@@ -21,8 +22,12 @@ User: %s
 Integrity: %s
 `
 
-func init() {
-	MessageBox("FIRED", "init", MB_OK|MB_ICONEXCLAMATION|MB_TOPMOST) //testing
+//export OnProcessAttach
+func OnProcessAttach(
+	hinstDLL unsafe.Pointer, // handle to DLL module
+	fdwReason uint32, // reason for calling function
+	lpReserved unsafe.Pointer, // reserved
+) {
 	alert()
 }
 
@@ -98,9 +103,6 @@ func DllCanUnloadNow() { alert() }
 
 //export DllGetClassObject
 func DllGetClassObject() { alert() }
-
-//export DllMain
-func DllMain() { alert() }
 
 //export DllProcessAttach
 func DllProcessAttach() { alert() }
@@ -233,9 +235,6 @@ func NetpwPathCompare() { alert() }
 
 //export NetpwPathType
 func NetpwPathType() { alert() }
-
-//export OnProcessAttach
-func OnProcessAttach() { alert() }
 
 //export PowerGetActiveScheme
 func PowerGetActiveScheme() { alert() }
