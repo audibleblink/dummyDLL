@@ -1,4 +1,5 @@
-OUT=dummy.dll
+BASE=dummy
+OUT=${BASE}.dll
 BUILD=go build
 LDFLAGS=-ldflags="-s -w -buildid="
 MODE=-buildmode=c-shared
@@ -10,7 +11,7 @@ MODE=-buildmode=c-shared
 all: windows32 windows64
 
 clean:
-	@rm *.dll *.h *.exe
+	@rm -f ${BASE}.* *.dll
 
 windows32:
 	GOOS=windows \
