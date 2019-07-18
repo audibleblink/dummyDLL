@@ -4,16 +4,16 @@ Export some functions. See if they load somewhere.
 
 ## Building
 
-Depending on your host OS:
+* Have `mingw-w64`
 
 ```sh
-make {windows,linux}
+make
 ```
 
 Check the functions work:
 
 ```sh
-.\rundll32.exe dummy.dll,DllRegisterServer
+rundll32.exe dummy.dll,DllRegisterServer
 ```
 
 Place the dll somewhere you think it might hijack a hosting executable.
