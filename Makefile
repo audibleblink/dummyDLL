@@ -1,30 +1,25 @@
-BASE=dummy
-OUT=${BASE}.dll
-BUILD=go build
-LDFLAGS=-ldflags="-s -w -buildid="
+APP=dummy
+FLAGS=-trimpath -ldflags="-s -w -buildid="
 MODE=-buildmode=c-shared
-# will enable once go1.13 drops
-# TRIM=
+ARCH = $(word 1, $@)
 
-.PHONY: windows32 windows64
-
-all: windows32 windows64
+all: 386 amd64
 
 clean:
-	@rm -f ${BASE}.* *.dll
+	@rm -f ${APP}.* *.dll
 
-windows32:
+386:
 	GOOS=windows \
-	GOARCH=386 \
+	GOARCH=${ARCH} \
 	CGO_ENABLED=1 \
 	CC=i686-w64-mingw32-gcc \
-	${BUILD} ${MODE} -o 32_${OUT} ${LDFLAGS}
+	go build ${MODE} -o ${APP}_${ARCH}.dll ${FLAGS}
 
-windows64:
+amd64:
 	GOOS=windows \
-	GOARCH=amd64 \
+	GOARCH=${ARCH} \
 	CGO_ENABLED=1 \
 	CC=x86_64-w64-mingw32-gcc \
-	${BUILD} ${MODE} -o 64_${OUT} ${LDFLAGS}
+	go build ${MODE} -o ${APP}_${ARCH}.dll ${FLAGS}
 
-
+.PHONY: all 386 amd64 clean
