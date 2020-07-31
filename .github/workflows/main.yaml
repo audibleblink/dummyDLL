@@ -8,14 +8,14 @@ name: Build and Release
 jobs:
 
   release:
+    name: 'Create Release from Tag'
     runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
 
       - name: Checkout
         uses: actions/checkout@master
-
-      - name: Build
-        uses: audibleblink/golang-action@x-compiler
 
       - name: Get the version
         id: get_version
@@ -32,23 +32,36 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload 386 Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dummy_386.dll
-          asset_name: dummy_386.dll
-          asset_content_type: application/gzip
+  build:
+    name: 'Build & Upload ${{ matrix.arch }} DLL'
+    runs-on: windows-latest
+    needs: release
+    strategy:
+      matrix:
+        arch: ['amd64', '386']
 
-      - name: Upload amd64 Release Asset
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@master
+
+      - name: 'Setup Golang Environment'
+        uses: actions/setup-go@v2
+        with:
+          go-version: '^1.14'
+
+      - name: 'Build ${{ matrix.OSes }}-${{ matrix.arch }}'
+        run: |
+          set GOARCH=${{ matrix.arch }}
+          set CGO_ENABLED=1
+          go build -trimpath -ldflags="-s -w -buildid=" -buildmode=c-shared -o dummy_${{ matrix.arch }}.dll
+
+      - name: 'Upload Release Assets'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dummy_amd64.dll
-          asset_name: dummy_amd64.dll
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_path: ./dummy_${{ matrix.arch }}.dll
+          asset_name: dummy_${{ matrix.arch }}.dll
           asset_content_type: application/octet-stream
 
