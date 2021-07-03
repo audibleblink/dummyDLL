@@ -44,7 +44,7 @@ jobs:
       - name: 'Setup Golang Environment'
         uses: actions/setup-go@v2
         with:
-          go-version: '^1.15'
+          go-version: '^1.16'
 
       - name: 'Build DLLs'
         run: make -j2
@@ -55,7 +55,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: ./dummy_amd64.dll
+          asset_path: build/dummy_amd64.dll
           asset_name: dummy_amd64.dll
           asset_content_type: application/octet-stream
 
@@ -65,7 +65,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: ./dummy_386.dll
+          asset_path: build/dummy_386.dll
           asset_name: dummy_386.dll
           asset_content_type: application/octet-stream
 
