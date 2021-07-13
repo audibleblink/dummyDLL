@@ -4,7 +4,7 @@ Export some functions. See if they load somewhere.
 
 ## Building
 
-* Have `mingw-w64`
+* Have `mingw-w64` (if compiling on Linux)
 
 ```sh
 make
