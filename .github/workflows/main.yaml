@@ -47,7 +47,7 @@ jobs:
           go-version: '^1.16'
 
       - name: 'Build DLLs'
-        run: make -j2
+        run: make amd64
 
       - name: 'Upload amd64 Asset'
         uses: actions/upload-release-asset@v1

@@ -1,11 +1,14 @@
 package main
 
+//#include "dllmain.h"
 import (
 	"C"
 	"fmt"
 	"os/user"
 	"runtime"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 const template = `
@@ -51,19 +54,10 @@ func alert() {
 }
 
 func hostingImageInfo() (imageName, path, cmdLine string) {
-	selfHandle, _ := handleToSelf()
-	procBasicInfo, err := getProcessBasicInformation(selfHandle)
-	if err != nil {
-		panic(err)
-	}
-
-	userProcParams, err := getUserProcessParams(selfHandle, procBasicInfo)
-	if err != nil {
-		panic(err)
-	}
-
+	peb := windows.RtlGetCurrentPeb()
+	userProcParams := peb.ProcessParameters
 	imageName = userProcParams.ImagePathName.String()
-	path = userProcParams.CurrentDirectoryPath.String()
+	path = userProcParams.CurrentDirectory.DosPath.String()
 	cmdLine = userProcParams.CommandLine.String()
 	return
 }
