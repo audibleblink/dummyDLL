@@ -59,13 +59,3 @@ jobs:
           asset_name: dummy_amd64.dll
           asset_content_type: application/octet-stream
 
-      - name: 'Upload 386 Asset'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.release.outputs.upload_url }}
-          asset_path: build/dummy_386.dll
-          asset_name: dummy_386.dll
-          asset_content_type: application/octet-stream
-
